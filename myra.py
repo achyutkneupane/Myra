@@ -10,12 +10,44 @@ from folium.plugins import HeatMap
 from geoip2 import database
 
 import matplotlib.pyplot as plt
+import itertools
 
 from matplotlib.dates import date2num
 import pandas as pd
 
 from scapy.all import *
 
+color = ["#f0a500","#5a3f11","#708160","#bb3b0e","#8566aa","#c70039","#ffffff","#27496d","#584153","#c3c3c3"]
+
+def sort_val(to_sort):
+    sorted_unique = []
+    count = []
+    for i in range(0,(len(to_sort))):
+        if to_sort[i] not in sorted_unique:
+            sorted_unique.append(to_sort[i])
+            count.append(1)
+        else:
+            for j in range(0,(len(sorted_unique))):
+                if sorted_unique[j] == to_sort[i]:
+                    count[j] += 1
+    final_dict = dict(itertools.islice(dict(sorted(dict(zip(sorted_unique,count)).items(), key=lambda x: x[1], reverse=True)).items(), 10))
+    sorted_vals = []
+    count = []
+    for x in final_dict:
+        sorted_vals.append(x)
+        count.append(final_dict[x])
+    return sorted_vals,count
+
+# Donut
+def donut(sorted_val,vals_title):
+    sorted_vals,val_count = sort_val(sorted_val)
+    sor_val,texts = plt.pie(val_count,colors=color, labels=val_count, pctdistance=0.85, wedgeprops={'edgecolor': '#000000'})
+    plt.legend(sor_val, sorted_vals, title="Legend", bbox_to_anchor=(0.85, .15, 0.5, 1), loc="upper right")
+    my_circle=plt.Circle( (0,0), 0.75, color='#000000')
+    p=plt.gcf()
+    plt.title(vals_title)
+    p.gca().add_artist(my_circle)
+    plt.show()
 
 @animation.wait('Reading pcap file')
 def read_pcap(input_pcap_file):
@@ -89,10 +121,12 @@ def obtain_geoip_info(src_ip_list, dst_ip_list):
     unique_src_country = set(resolved_src_country)
     unique_dst_country = set(resolved_dst_country)
 
-    print('\nUnique Source Countries are ')
-    print(unique_src_country)
-    print('Unique Destination Countries are ')
-    print(unique_dst_country)
+    #print('\nUnique Source Countries are ')
+    #print(unique_src_country)
+    #print('Unique Destination Countries are ')
+    #print(unique_dst_country)
+    donut(resolved_src_country,"Unique Source Countries")
+    donut(resolved_dst_country,"Unique Destination Countries")
 
     return (resolved_src_country, src_locale, 
             resolved_dst_country, dst_locale)
@@ -234,17 +268,19 @@ def ip_report(packets):
     unique_src_ip = set(src_ip)
     unique_dst_ip = set(dst_ip)
 
-    print('\nV----- Unique Source IPs -----V\n')
-    print(unique_src_ip)
-    print('\nV----- Unique Destination IPs -----V\n')
-    print(unique_dst_ip)
+    #print('\nV----- Unique Source IPs -----V\n')
+    #print(unique_src_ip)
+    #print('\nV----- Unique Destination IPs -----V\n')
+    #print(unique_dst_ip)
+    donut(src_ip,"Unique Source IP")
+    donut(dst_ip,"Unique Destination IP")
     unique_src_ip_count = len(unique_src_ip)
     unique_dst_ip_count = len(unique_dst_ip)
 
-    print('The number of unique source ips is ' 
-                    + str(unique_src_ip_count) + '\n')
-    print('The number of unique destination ips is ' 
-                    + str(unique_dst_ip_count) + '\n')
+    #print('The number of unique source ips is ' 
+    #                + str(unique_src_ip_count) + '\n')
+    #print('The number of unique destination ips is ' 
+    #                + str(unique_dst_ip_count) + '\n')
 
     
     (src_country, src_locale, 
@@ -438,7 +474,6 @@ def main():
 
 if len(sys.argv) not in [3, 4]:
     print('''
-
 **** Usage: python3 myra.py <pcap_file> <summary_output_file> ****
             
         ''')
@@ -470,7 +505,6 @@ except FileNotFoundError:
           'Exiting..')
 
 print('''
-
     ,·'´¨;.  '                       ,-·-.          ,'´¨;         ,. -  .,                              ,.,   '      
     ;   ';:\           .·´¨';\       ';   ';\      ,'´  ,':\'     ,' ,. -  .,  `' ·,                     ;´   '· .,     
    ;     ';:'\      .'´     ;:'\       ;   ';:\   .'   ,'´::'\'    '; '·~;:::::'`,   ';\                .´  .-,    ';\   
