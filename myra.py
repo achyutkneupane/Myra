@@ -14,13 +14,14 @@ import itertools
 
 from matplotlib.dates import date2num
 import pandas as pd
+import squarify
 
 from scapy.all import *
 
 color = ["#f0a500","#5a3f11","#708160","#bb3b0e","#8566aa","#c70039","#ffffff","#27496d","#584153","#c3c3c3"]
 
 def sort_val(to_sort):     
-    final_dict = dict(itertools.islice(dict(sorted(dict(Counter(ips)).items(), key=lambda x: x[1], reverse=True)).items(), 10))
+    final_dict = dict(itertools.islice(dict(sorted(dict(Counter(to_sort)).items(), key=lambda x: x[1], reverse=True)).items(), 10))
     sorted_vals = []
     count = []
     for x in final_dict:
@@ -37,6 +38,17 @@ def donut(sorted_val,vals_title):
     p=plt.gcf()
     plt.title(vals_title)
     p.gca().add_artist(my_circle)
+    plt.show()
+
+def tree(to_sort_val,vals_title):
+    label_data = []
+    plt.figure(figsize=(12,6))
+    sorted_vals,val_count = sort_val(to_sort_val)
+    for x in range(len(sorted_vals)):
+        label_data.append("%s\nCount : %s" %(sorted_vals[x],val_count[x]))
+    print(label_data)
+    squarify.plot(sizes=val_count, label=label_data, color=color, alpha=.6, edgecolor="white", linewidth=2, pad=True, text_kwargs={'fontsize':7.3})
+    plt.axis('off')
     plt.show()
 
 @animation.wait('Reading pcap file')
@@ -116,7 +128,9 @@ def obtain_geoip_info(src_ip_list, dst_ip_list):
     #print('Unique Destination Countries are ')
     #print(unique_dst_country)
     donut(resolved_src_country,"Unique Source Countries")
+    tree(resolved_src_country,"Unique Source Countries")
     donut(resolved_dst_country,"Unique Destination Countries")
+    tree(resolved_dst_country,"Unique Destination Countries")
 
     return (resolved_src_country, src_locale, 
             resolved_dst_country, dst_locale)
@@ -263,7 +277,9 @@ def ip_report(packets):
     #print('\nV----- Unique Destination IPs -----V\n')
     #print(unique_dst_ip)
     donut(src_ip,"Unique Source IP")
+    tree(src_ip,"Unique Source IP")
     donut(dst_ip,"Unique Destination IP")
+    tree(dst_ip,"Unique Destination IP")
     unique_src_ip_count = len(unique_src_ip)
     unique_dst_ip_count = len(unique_dst_ip)
 
@@ -275,13 +291,13 @@ def ip_report(packets):
     
     (src_country, src_locale, 
     dst_country, dst_locale) = obtain_geoip_info(src_ip, dst_ip)
-    # plot_ts(ip_ts, 'IP Flow', '#af4bce')
+    #plot_ts(ip_ts, 'IP Flow', '#af4bce')
 
-    # generate_choropleth(src_country, 'Source Countries')
-    # generate_choropleth(dst_country, 'Destination Countries')
+    #generate_choropleth(src_country, 'Source Countries')
+    #generate_choropleth(dst_country, 'Destination Countries')
     
-    # generate_heatmap(src_locale, 'Source Countries')
-    # generate_heatmap(dst_locale, 'Destination Countries') 
+    #generate_heatmap(src_locale, 'Source Countries')
+    #generate_heatmap(dst_locale, 'Destination Countries') 
     # TODO Multiprocess maps creation.
     return unique_src_ip, unique_dst_ip
 
@@ -454,7 +470,7 @@ def main():
     src_ip, dst_ip = ip_report(packets)
 
     # print('Generating Transport Layer Report....\n')
-    # transport_report(packets)
+    transport_report(packets)
 
     # print('Generating ARP Report....\n')
     # arp_report(packets)
