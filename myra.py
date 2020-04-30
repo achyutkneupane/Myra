@@ -19,18 +19,8 @@ from scapy.all import *
 
 color = ["#f0a500","#5a3f11","#708160","#bb3b0e","#8566aa","#c70039","#ffffff","#27496d","#584153","#c3c3c3"]
 
-def sort_val(to_sort):
-    sorted_unique = []
-    count = []
-    for i in range(0,(len(to_sort))):
-        if to_sort[i] not in sorted_unique:
-            sorted_unique.append(to_sort[i])
-            count.append(1)
-        else:
-            for j in range(0,(len(sorted_unique))):
-                if sorted_unique[j] == to_sort[i]:
-                    count[j] += 1
-    final_dict = dict(itertools.islice(dict(sorted(dict(zip(sorted_unique,count)).items(), key=lambda x: x[1], reverse=True)).items(), 10))
+def sort_val(to_sort):     
+    final_dict = dict(itertools.islice(dict(sorted(dict(Counter(ips)).items(), key=lambda x: x[1], reverse=True)).items(), 10))
     sorted_vals = []
     count = []
     for x in final_dict:
@@ -42,7 +32,7 @@ def sort_val(to_sort):
 def donut(sorted_val,vals_title):
     sorted_vals,val_count = sort_val(sorted_val)
     sor_val,texts = plt.pie(val_count,colors=color, labels=val_count, pctdistance=0.85, wedgeprops={'edgecolor': '#000000'})
-    plt.legend(sor_val, sorted_vals, title="Legend", bbox_to_anchor=(0.85, .15, 0.5, 1), loc="upper right")
+    plt.legend(sor_val, sorted_vals, title="Legend", bbox_to_anchor=(0.85, .15, 0.5, 1), loc="upper right", prop={'size': 8})
     my_circle=plt.Circle( (0,0), 0.75, color='#000000')
     p=plt.gcf()
     plt.title(vals_title)
