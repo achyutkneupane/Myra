@@ -61,9 +61,9 @@ Want to contribute? Great! Hop on.
 ### Todos
  - [x] Add support for more layers such as ARP.
  - [x] Replace that ugly coordinate map plot with a beautiful Choropleth.
- - [ ] Generate Top 10 list for each layer depending upon count.
- - [ ] Generate varieties of plots for statistics such as sankey, doughnut, tree, etc.
- - [ ] Support output in HTML and PDF.
+ - [x] Generate Top 10 list for each layer depending upon count.
+ - [x] Generate varieties of plots for statistics such as doughnut, treemap, word cloud, etc.
+ - [ ] Generate PDF.
  - [ ] Write Unit Tests
  - [ ] Implement Micro-services architecture for concurrency.
 

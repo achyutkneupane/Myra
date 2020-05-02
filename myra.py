@@ -15,13 +15,15 @@ import itertools
 from matplotlib.dates import date2num
 import pandas as pd
 import squarify
+from wordcloud import WordCloud
 
 from scapy.all import *
 
-color = ["#f0a500","#5a3f11","#708160","#bb3b0e","#8566aa","#c70039","#ffffff","#27496d","#584153","#c3c3c3"]
+color = ["#2D1128","#59214F","#702963","#953784","#B3429E","#C25BAF","#CD79BE","#D897CC","#E3B5DB","#F4E1F1"]
+color2 = ["#1d0027","#23042b","#2d0e37","#3b2141","#49354e","#5b4a5f","#69586e","#7f7383","#98949a","#e3e3e3"]
 
 def sort_val(to_sort):     
-    final_dict = dict(itertools.islice(dict(sorted(dict(Counter(to_sort)).items(), key=lambda x: x[1], reverse=True)).items(), 10))
+    final_dict = dict(itertools.islice(dict(sorted(dict(Counter(to_sort)).items(),key=lambda x: x[1], reverse=True)).items(), 10))
     sorted_vals = []
     count = []
     for x in final_dict:
@@ -32,8 +34,8 @@ def sort_val(to_sort):
 # Donut
 def donut(sorted_val,vals_title):
     sorted_vals,val_count = sort_val(sorted_val)
-    sor_val,texts = plt.pie(val_count,colors=color, labels=val_count, pctdistance=0.85, wedgeprops={'edgecolor': '#000000'})
-    plt.legend(sor_val, sorted_vals, title="Legend", bbox_to_anchor=(0.85, .15, 0.5, 1), loc="upper right", prop={'size': 8})
+    sor_val,texts = plt.pie(val_count,colors=color, labels=val_count, wedgeprops={'edgecolor': '#000000'})
+    plt.legend(sor_val, sorted_vals, edgecolor="#000000", bbox_to_anchor=(0.85, .15, 0.5, 1), loc="upper right", prop={'size': 8})
     my_circle=plt.Circle( (0,0), 0.75, color='#000000')
     p=plt.gcf()
     plt.title(vals_title)
@@ -46,10 +48,20 @@ def tree(to_sort_val,vals_title):
     sorted_vals,val_count = sort_val(to_sort_val)
     for x in range(len(sorted_vals)):
         label_data.append("%s\nCount : %s" %(sorted_vals[x],val_count[x]))
-    print(label_data)
-    squarify.plot(sizes=val_count, label=label_data, color=color, alpha=.6, edgecolor="white", linewidth=2, pad=True, text_kwargs={'fontsize':7.3})
+    squarify.plot(sizes=val_count, label=label_data, color=color, edgecolor="white", linewidth=0, text_kwargs={'fontsize':7,'color':"#000000",'weight':"bold"})
     plt.axis('off')
+    plt.title(vals_title)
     plt.show()
+
+def word_cloud(dns_txt):
+    dns_wc = WordCloud(width = 1000, height = 500, margin=20, include_numbers=False,repeat=False,contour_color="pink",stopwords=None, ).generate(dns_txt)
+    plt.figure(figsize=(15,8))
+    plt.imshow(dns_wc)
+    plt.axis("off")
+    plt.title("DNS Word Cloud")
+    plt.show()
+    plt.close()
+
 
 @animation.wait('Reading pcap file')
 def read_pcap(input_pcap_file):
@@ -82,7 +94,6 @@ def plot_ts(ts_data, title, color):
     plt.ylim(0.97,1.2)
     plt.title(title)
     plt.yticks([])
-
     plt.show()
     # * I know this is cheating. But seems to be the only way.
 
@@ -138,14 +149,6 @@ def obtain_geoip_info(src_ip_list, dst_ip_list):
 
 def generate_choropleth(src_country, title):
     country_counter = dict(Counter(src_country))
-
-    geo_ip_data = pd.DataFrame(list(
-                            country_counter.items()),
-                            columns = ['Country', 'Count'])
-
-    choro_map = folium.Map(tiles = "cartodbdark_matter", 
-                           location = [32.635588, 4.879570], 
-                           zoom_start = 2.4)
     try:
         folium.Choropleth(
                     geo_data = GEO_JSON,
@@ -199,6 +202,7 @@ def dns_report(packets):
     query_count = 0
     dns_req_ts = []
     dns_query = []
+    dns_str = str()
 
     for packet in packets:
         if packet.haslayer(DNSRR):
@@ -207,14 +211,15 @@ def dns_report(packets):
                 query_count += 1
                 packet_ts = datetime.fromtimestamp(packet.time)
                 dns_req_ts.append(packet_ts)
-                print(packet.an.rrname.decode().strip('.'))
+                #print(packet.an.rrname.decode().strip('.'))
                 dns_query.append(packet.an.rrname.decode().strip('.'))
                 # Converting to unicode and stripping the root '.'
 
     print('\nTotal number of DNS Queries made is '
                                      + str(query_count) + '\n')
-    
+    dns_str = (" ").join(dns_query)
     plot_ts(dns_req_ts, 'DNS Flow', '#4d4dff')
+    word_cloud(dns_str)
     return dns_query
 
 

@@ -14,7 +14,6 @@ cycler==0.10.0
 descartes==1.1.0
 dnspython==1.16.0
 ecdsa==0.15
-Electrum==3.3.8
 Fiona==1.8.13.post1
 folium==0.10.1
 fpdf==1.7.2
@@ -31,9 +30,8 @@ mock==3.0.5
 multidict==4.7.5
 munch==2.5.0
 numpy==1.18.2
-object-detection==0.1
-opencv-python==3.4.3.18
 pandas==1.0.3
+Pillow==7.1.2
 plotly==4.6.0
 protobuf==3.11.3
 pyaes==1.6.1
@@ -53,6 +51,7 @@ six==1.14.0
 squarify==0.4.3
 Unidecode==1.1.1
 urllib3==1.25.9
+wordcloud==1.6.0
 xlrd==1.2.0
 yarl==1.4.2
 zmq==0.0.0
