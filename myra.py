@@ -16,16 +16,30 @@ from matplotlib.dates import date2num
 import pandas as pd
 import squarify
 from wordcloud import WordCloud,STOPWORDS
-from whois import whois as reporter
-
+from whois import whois,parser
+from socket import gaierror,socket,timeout
 from scapy.all import *
 
-color = ["#2D1128","#59214F","#702963","#953784","#B3429E","#C25BAF","#CD79BE","#D897CC","#E3B5DB","#F4E1F1"]
-stop_words = ["net"] + list(STOPWORDS)
+color = ["#2D1128",
+    "#59214F",
+    "#702963",
+    "#953784",
+    "#B3429E",
+    "#C25BAF",
+    "#CD79BE",
+    "#D897CC",
+    "#E3B5DB",
+    "#F4E1F1"
+    ]
+stop_words = ["net","io","co"] + list(STOPWORDS)
 whois_data = []
 
 def sort_val(to_sort):     
-    final_dict = dict(itertools.islice(dict(sorted(dict(Counter(to_sort)).items(),key=lambda x: x[1], reverse=True)).items(), 10))
+    final_dict = dict(itertools.islice(dict(sorted(dict(Counter(to_sort))
+        .items(),
+        key=lambda x: x[1],
+        reverse=True)).items(),
+        10))
     sorted_vals = []
     count = []
     for x in final_dict:
@@ -36,9 +50,17 @@ def sort_val(to_sort):
 # Donut
 def donut(sorted_val,vals_title):
     sorted_vals,val_count = sort_val(sorted_val)
-    sor_val,texts = plt.pie(val_count,colors=color, labels=val_count, wedgeprops={'edgecolor': '#000000'})
-    plt.legend(sor_val, sorted_vals, edgecolor="#000000", bbox_to_anchor=(0.85, .15, 0.5, 1), loc="upper right", prop={'size': 8})
-    my_circle=plt.Circle( (0,0), 0.75, color='#000000')
+    sor_val,texts = plt.pie(val_count,
+                        colors=color,
+                        labels=val_count,
+                        wedgeprops={'edgecolor': '#000000'})
+    plt.legend(sor_val,
+                sorted_vals,
+                edgecolor="#000000",
+                bbox_to_anchor=(0.85, .15, 0.5, 1),
+                loc="upper right",
+                prop={'size': 8})
+    my_circle=plt.Circle((0,0),0.75,color='#000000')
     p=plt.gcf()
     plt.title(vals_title)
     p.gca().add_artist(my_circle)
@@ -49,29 +71,58 @@ def tree(to_sort_val,vals_title):
     plt.figure(figsize=(12,6))
     sorted_vals,val_count = sort_val(to_sort_val)
     for x in range(len(sorted_vals)):
-        label_data.append("%s\nCount : %s" %(sorted_vals[x],val_count[x]))
-    squarify.plot(sizes=val_count, label=label_data, color=color, edgecolor="white", linewidth=0, text_kwargs={'fontsize':7,'backgroundcolor':"#FAF0F8",'color':"#000000",'weight':"bold"})
+        label_data.append("%s\nCount : %s" %(
+            sorted_vals[x],
+            val_count[x]))
+    squarify.plot(sizes=val_count,
+        label=label_data,
+        color=color,
+        edgecolor="white",
+        linewidth=0,
+        text_kwargs={'fontsize':7,
+            'backgroundcolor':"#FAF0F8",
+            'color':"#000000",
+            'weight':"bold"})
     plt.axis('off')
     plt.title(vals_title)
     plt.show()
 
+@animation.wait('Generating Wordcloud')
+def whois_dns(domain_list):
+    for dns_str in domain_list:
+        try:
+            dns_data = whois(dns_str)
+            print(dns_data)
+        except parser.PywhoisError: pass
+        except AttributeError: pass
+        except gaierror: pass
+        except timeout: pass
+        try:
+            if len(dns_data.domain_name) == 2:
+                whois_data.append(dns_data.domain_name[0])
+            elif len(dns_data.domain_name) > 1:
+                whois_data.append(dns_data.domain_name)
+        except AttributeError: pass
+        except TypeError: pass
+    whois_str = (" ").join(whois_data)
+    return whois_str
+
 def word_cloud(dns_list):
-    dns_wc = WordCloud(width = 1000, height = 500, stopwords=stop_words, margin=20, include_numbers=False,repeat=False).generate(whois_dns(dns_list))
+    text_str = whois_dns(dns_list)
+    print("Text: " + text_str)
+    dns_wc = WordCloud(
+        width = 1000,
+        height = 500,
+        stopwords=stop_words,
+        margin=20,
+        include_numbers=False,
+        repeat=False).generate(text_str)
     plt.figure(figsize=(15,8))
     plt.imshow(dns_wc)
     plt.axis("off")
     plt.title("DNS Word Cloud")
     plt.show()
     plt.close()
-
-@animation.wait('Generating Wordcloud')
-def whois_dns(domain_list):
-    for dnss in domain_list:
-        name = reporter(dnss)
-        if len(name.domain_name) == 2: whois_data.append(name.domain_name[0])
-        elif len(name.domain_name) > 1: whois_data.append(name.domain_name)
-    whois_str = (" ").join(whois_data)
-    return whois_str
 
 @animation.wait('Reading pcap file')
 def read_pcap(input_pcap_file):
@@ -80,7 +131,6 @@ def read_pcap(input_pcap_file):
         return packets
     except FileNotFoundError:
         return None
-
 
 def generate_summary(packets, output_file):
     with open(output_file, 'w') as fp:
@@ -228,7 +278,7 @@ def dns_report(packets):
     print('\nTotal number of DNS Queries made is '
                                      + str(query_count) + '\n')
     plot_ts(dns_req_ts, 'DNS Flow', '#4d4dff')
-    word_cloud(dns_query)
+    word_cloud(list(dns_query))
     return dns_query
 
 
@@ -494,7 +544,6 @@ def main():
 if len(sys.argv) not in [3, 4]:
     print('''
 **** Usage: python3 myra.py <pcap_file> <summary_output_file> ****
-            
         ''')
     exit()
 

@@ -1,14 +1,43 @@
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud,STOPWORDS
-import whois
-my_list = ['mtalk.google.com', '43.courier-push-apple.com.akadns.net', 'asimov.vortex.data.microsoft.com.akadns.net', 'gs-loc-new.ls-apple.com.akadns.net', '50-courier.push.apple.com', '41-courier.push.apple.com', 'mtalk.google.com', 'update.code.visualstudio.com', 'asimov.vortex.data.microsoft.com.akadns.net']
-stop_words = ["net"] + list(STOPWORDS)
+from whois import whois,parser
+from socket import gaierror,socket,timeout
+stop_words = ["net","io","co"] + list(STOPWORDS)
 whois_data = []
+name = []
+textt = ['gitlab.com', 'github.com', 'mnsvmag.com', 'logpoint.com']
+def whois_dns(domain_list):
+    for dns_str in domain_list:
+        try:
+            name = whois(dns_str)
+        except parser.PywhoisError: pass
+        except AttributeError: pass
+        except gaierror: pass
+        except timeout: pass
+        try:
+            if len(name.domain_name) == 2:
+                whois_data.append(name.domain_name[0])
+            elif len(name.domain_name) > 1:
+                whois_data.append(name.domain_name)
+        except AttributeError: pass
+        except TypeError: pass
+    whois_str = (" ").join(whois_data)
+    return whois_str
 
-wordcloud = WordCloud(width = 1000, height = 500, stopwords=stop_words, margin=20, include_numbers=False,repeat=False,contour_color="pink").generate(unique_string)
-plt.figure(figsize=(15,8))
-plt.imshow(wordcloud)
-plt.axis("off")
-#plt.savefig("your_file_name"+".png", bbox_inches='tight')
-plt.show()
-plt.close()
+def word_cloud(dns_list):
+    text_str = whois_dns(dns_list)
+    dns_wc = WordCloud(
+        width = 1000,
+        height = 500,
+        stopwords=stop_words,
+        margin=20,
+        include_numbers=False,
+        repeat=False).generate(text_str)
+    plt.figure(figsize=(15,8))
+    plt.imshow(dns_wc)
+    plt.axis("off")
+    plt.title("DNS Word Cloud")
+    plt.show()
+    plt.close()
+
+word_cloud(textt)
