@@ -2,7 +2,6 @@
 import matplotlib.pyplot as plt
 import itertools
 from collections import Counter
-import matplotlib
 import squarify
 
 ips=['80.234.82.76', "80.299.82.76", "80.239.52.76", '80.239.156.76','80.234.52.76', "80.239.82.76", "80.239.82.76", '80.299.156.76','80.234.52.76', "80.239.82.76", "80.239.82.76", '80.239.156.76','1','2','3','4','5']
@@ -34,18 +33,12 @@ donut(ips,"Ips")
 import squarify
 def tree(to_sort_val):
     label_data = []
-    plt.figure(figsize=(12,6))
+    plt.figure(figsize=(6,3))
     sorted_vals,val_count = sort_val(to_sort_val)
-    for x in range(len(sorted_vals)):
+    for x in range(10):
         label_data.append("%s\nCount : %s" %(sorted_vals[x],val_count[x]))
-    cmap = matplotlib.cm.Purples
-    mini=min(val_count)
-    maxi=max(val_count)
-    norm = matplotlib.colors.Normalize(vmin=mini, vmax=maxi)
-    colors = [cmap(norm(value)) for value in val_count]
-    squarify.plot(sizes=val_count, label=sorted_vals, alpha=.8, color=colors )
+    squarify.plot(sizes=val_count, label=label_data, color=color, edgecolor="white", linewidth=2, pad=True, text_kwargs={'fontsize':7.3})
     plt.axis('off')
-    plt.title("Kando")
     plt.show()
 
 tree(ips)

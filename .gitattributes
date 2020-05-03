@@ -27,4 +27,9 @@
 # with the python modules ``pickle``, ``dbm.*``,
 # ``shelve``, ``marshal``, ``anydbm``, & ``bsddb``
 # (among others).
+<<<<<<< HEAD
 *.py linguist-detectable=true
+=======
+* linguist-vendored
+*.py linguist-vendored=false
+>>>>>>> 0379c255e620e5046c22dad54857f14a9e204524
