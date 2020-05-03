@@ -15,12 +15,14 @@ import itertools
 from matplotlib.dates import date2num
 import pandas as pd
 import squarify
-from wordcloud import WordCloud
+from wordcloud import WordCloud,STOPWORDS
+from whois import whois as reporter
 
 from scapy.all import *
 
 color = ["#2D1128","#59214F","#702963","#953784","#B3429E","#C25BAF","#CD79BE","#D897CC","#E3B5DB","#F4E1F1"]
-color2 = ["#1d0027","#23042b","#2d0e37","#3b2141","#49354e","#5b4a5f","#69586e","#7f7383","#98949a","#e3e3e3"]
+stop_words = ["net"] + list(STOPWORDS)
+whois_data = []
 
 def sort_val(to_sort):     
     final_dict = dict(itertools.islice(dict(sorted(dict(Counter(to_sort)).items(),key=lambda x: x[1], reverse=True)).items(), 10))
@@ -48,13 +50,13 @@ def tree(to_sort_val,vals_title):
     sorted_vals,val_count = sort_val(to_sort_val)
     for x in range(len(sorted_vals)):
         label_data.append("%s\nCount : %s" %(sorted_vals[x],val_count[x]))
-    squarify.plot(sizes=val_count, label=label_data, color=color, edgecolor="white", linewidth=0, text_kwargs={'fontsize':7,'color':"#000000",'weight':"bold"})
+    squarify.plot(sizes=val_count, label=label_data, color=color, edgecolor="white", linewidth=0, text_kwargs={'fontsize':7,'backgroundcolor':"#FAF0F8",'color':"#000000",'weight':"bold"})
     plt.axis('off')
     plt.title(vals_title)
     plt.show()
 
-def word_cloud(dns_txt):
-    dns_wc = WordCloud(width = 1000, height = 500, margin=20, include_numbers=False,repeat=False,contour_color="pink",stopwords=None, ).generate(dns_txt)
+def word_cloud(dns_list):
+    dns_wc = WordCloud(width = 1000, height = 500, stopwords=stop_words, margin=20, include_numbers=False,repeat=False).generate(whois_dns(dns_list))
     plt.figure(figsize=(15,8))
     plt.imshow(dns_wc)
     plt.axis("off")
@@ -62,6 +64,14 @@ def word_cloud(dns_txt):
     plt.show()
     plt.close()
 
+@animation.wait('Generating Wordcloud')
+def whois_dns(domain_list):
+    for dnss in domain_list:
+        name = reporter(dnss)
+        if len(name.domain_name) == 2: whois_data.append(name.domain_name[0])
+        elif len(name.domain_name) > 1: whois_data.append(name.domain_name)
+    whois_str = (" ").join(whois_data)
+    return whois_str
 
 @animation.wait('Reading pcap file')
 def read_pcap(input_pcap_file):
@@ -217,9 +227,8 @@ def dns_report(packets):
 
     print('\nTotal number of DNS Queries made is '
                                      + str(query_count) + '\n')
-    dns_str = (" ").join(dns_query)
     plot_ts(dns_req_ts, 'DNS Flow', '#4d4dff')
-    word_cloud(dns_str)
+    word_cloud(dns_query)
     return dns_query
 
 
@@ -266,7 +275,6 @@ def ip_report(packets):
     unique_dst_ip = []
     unique_src_ip_count = 0
     unique_dst_ip_count = 0
-    
     for packet in packets:
         if packet.haslayer(IP):
             src_ip.append(packet[IP].src)
@@ -369,7 +377,7 @@ def transport_report(packets):
 def matcher(source_set, blacklist_set):
     match_list = []
 
-    for each_candidate in source_set:
+    for each_candidate in soudrce_set:
         if each_candidate in blacklist_set:
             match_list.append(each_candidate)
     return match_list
